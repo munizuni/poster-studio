@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poster Studio — 졸업논문 포스터 초안 도구</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<style>
+:root{--ink:#0f1729;--ink2:#475266;--ink3:#8a93a3;--line:#e6e9ef;--bg:#f6f7f9;--card:#fff;--acc:#1b3f8b;--acc2:#2d5bd0;--accbg:#eef3fc;--r:12px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0}
+body{font-family:'IBM Plex Sans KR','Noto Sans KR',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+.wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;cursor:pointer;white-space:nowrap;font-weight:500;transition:background .15s,border-color .15s,box-shadow .15s}
+.btn:hover{border-color:#cdd3dc;background:#fafbfc}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.pri:hover{background:#15326f}
+.btn.lg{padding:12px 22px;font-size:15px;border-radius:11px}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 9px;font-size:12px;border-radius:7px}
+.btn.warn{border-color:#e7a5a5;background:#fff5f5;color:#a42626}
+
+/* ---------- Landing ---------- */
+.nav{position:sticky;top:0;z-index:20;background:rgba(246,247,249,.85);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid transparent}
+.nav.scrolled{border-bottom-color:var(--line)}
+.nav-in{display:flex;align-items:center;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.01em}
+.mark{width:28px;height:28px;border-radius:8px;background:var(--acc);display:grid;place-items:center}
+.mark i{display:block;width:12px;height:16px;border:2px solid #fff;border-radius:2px;position:relative}
+.mark i::after{content:'';position:absolute;left:2px;right:2px;top:3px;height:2px;background:#fff;box-shadow:0 4px 0 #fff}
+.nav-links{margin-left:auto;display:flex;align-items:center;gap:26px;color:var(--ink2);font-weight:500}
+.nav-links a:not(.btn):hover{color:var(--ink)}
+.hero{padding:72px 0 88px}
+header.hero,section.blk{scroll-margin-top:64px}
+.hero-in{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center}
+.eyebrow{display:inline-block;font-size:13px;font-weight:600;color:var(--acc);background:var(--accbg);padding:5px 11px;border-radius:99px}
+.hero h1{font-size:50px;line-height:1.18;letter-spacing:-.035em;margin:20px 0 18px;font-weight:700}
+.hero h1 em{font-style:normal;color:var(--acc)}
+.hero p.lead{font-size:17px;line-height:1.7;color:var(--ink2);margin:0 0 30px;max-width:520px}
+.cta{display:flex;gap:10px;flex-wrap:wrap}
+.ticks{list-style:none;padding:0;margin:28px 0 0;display:flex;gap:20px;flex-wrap:wrap;color:var(--ink2);font-size:13px}
+.ticks li{display:flex;align-items:center;gap:6px}
+.ticks li::before{content:'';width:16px;height:16px;border-radius:50%;background:var(--accbg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%231b3f8b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.hero-art{position:relative;display:flex;justify-content:center}
+.hero-art::before{content:'';position:absolute;inset:8% -4% -6% 10%;background:radial-gradient(closest-side,#dfe8fb,transparent);z-index:0}
+.mock{position:relative;z-index:1;width:340px;aspect-ratio:1/1.414;background:#fff;border-radius:6px;box-shadow:0 1px 2px rgba(15,23,41,.06),0 24px 60px -12px rgba(15,23,41,.22);overflow:hidden;display:flex;flex-direction:column;transform:rotate(-2deg)}
+.mock .mt{height:6px;background:var(--acc)}
+.mock .mh{padding:14px 18px 10px;border-bottom:2px solid var(--acc);text-align:center}
+.mock .bar{height:7px;border-radius:3px;background:#dfe4ec;margin:5px auto}
+.mock .bar.t{height:10px;background:var(--acc);opacity:.9}
+.mock .mb{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 14px}
+.mock .mc{display:flex;flex-direction:column;gap:7px}
+.mock .sh{width:46%;height:9px;border-radius:2px 2px 0 0;background:var(--acc)}
+.mock .ln{height:4px;border-radius:2px;background:#e6e9ef}
+.mock .fg{border-radius:3px;display:flex;align-items:flex-end;gap:5px;padding:7px 8px;background:#f5f7fb}
+.mock .fg span{flex:1;border-radius:2px 2px 0 0}
+.mock .ph{border-radius:3px;background:linear-gradient(135deg,#a9cf7e,#4f8f3a)}
+.mock .mf{height:16px;background:var(--acc)}
+.chip{position:absolute;z-index:2;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;box-shadow:0 10px 30px -10px rgba(15,23,41,.25);display:flex;align-items:center;gap:7px}
+.chip b{width:8px;height:8px;border-radius:50%;background:#2fb36d}
+.chip.c1{top:16%;left:-2%}.chip.c2{bottom:14%;right:-2%}
+section.blk{padding:84px 0;border-top:1px solid var(--line);background:#fff}
+section.blk.alt{background:var(--bg)}
+.sec-title{max-width:620px;margin-bottom:44px}
+.sec-title .eyebrow{margin-bottom:14px}
+.sec-title h2{font-size:32px;letter-spacing:-.03em;margin:0 0 10px;line-height:1.3}
+.sec-title p{color:var(--ink2);font-size:16px;line-height:1.7;margin:0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.feat{border:1px solid var(--line);border-radius:var(--r);padding:22px;background:#fff}
+.feat .ic{width:40px;height:40px;border-radius:10px;background:var(--accbg);display:grid;place-items:center;margin-bottom:16px}
+.feat h3{font-size:16px;margin:0 0 8px;letter-spacing:-.01em}
+.feat p{margin:0;color:var(--ink2);line-height:1.65;font-size:14px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:st}
+.step{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px}
+.step .n{font-size:13px;font-weight:700;color:var(--acc);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.step .n::before{counter-increment:st;content:counter(st);width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:13px}
+.step h3{margin:0 0 8px;font-size:17px}
+.step p{margin:0;color:var(--ink2);line-height:1.65}
+.rules{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rule{display:flex;gap:16px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.rule .dg{flex:none;width:92px;height:62px;border:1px solid var(--line);border-radius:8px;padding:7px;display:flex;gap:5px;background:#fafbfc}
+.rule .dg.v{flex-direction:column}
+.rule .im{background:#c9d6ee;border-radius:3px}
+.rule .lg{display:flex;flex-direction:column;gap:3px;justify-content:center;flex:1}
+.rule .lg i{display:block;height:3px;border-radius:2px;background:#cfd5de}
+.rule p{margin:0;color:var(--ink2);line-height:1.6}
+.rule b{color:var(--ink)}
+.faq{max-width:760px}
+.faq details{border-bottom:1px solid var(--line);padding:18px 0}
+.faq summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq summary::after{content:'+';font-size:20px;color:var(--ink3);font-weight:400}
+.faq details[open] summary::after{content:'–'}
+.faq details p{color:var(--ink2);line-height:1.7;margin:10px 0 0}
+.final{text-align:center;padding:84px 0;background:var(--acc);color:#fff}
+.final h2{font-size:30px;letter-spacing:-.03em;margin:0 0 12px}
+.final p{opacity:.8;margin:0 0 28px;font-size:16px}
+.final .btn{background:#fff;color:var(--acc);border-color:#fff}
+.foot{padding:28px 0;color:var(--ink3);font-size:13px;background:#fff;border-top:1px solid var(--line)}
+.foot .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* ---------- Studio ---------- */
+#studio{height:100vh;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:8px;padding:0 16px;height:58px;background:#fff;border-bottom:1px solid var(--line);flex:none}
+.topbar .brand{font-size:15px;margin-right:10px}
+.tsep{width:1px;height:22px;background:var(--line);margin:0 6px}
+.spacer{flex:1}
+#status{font-size:12px;padding:5px 11px;border-radius:99px;background:#eaf6ee;color:#1f6a3b;font-weight:500;max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#status.warn{background:#fdeeee;color:#a42626}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.seg .btn{border:0;border-radius:0;border-right:1px solid var(--line)}
+.seg .btn:last-child{border-right:0}
+.seg-l{font-size:12px;color:var(--ink3);margin-right:2px}
+.main{flex:1;display:flex;min-height:0}
+.editor{width:440px;flex:none;overflow-y:auto;background:#fff;border-right:1px solid var(--line);padding:6px 22px 48px}
+.editor h2{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;margin:26px 0 10px;letter-spacing:-.01em}
+.editor h2 .k{width:22px;height:22px;border-radius:6px;background:var(--accbg);color:var(--acc);display:grid;place-items:center;font-size:12px}
+.editor .grp{padding-bottom:6px;border-bottom:1px solid var(--line)}
+label{display:block;font-size:12px;font-weight:500;color:var(--ink2);margin:10px 0 5px}
+input[type=text],textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;transition:border-color .15s,box-shadow .15s}
+textarea{resize:vertical;min-height:72px;line-height:1.55}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#9fb4e3;box-shadow:0 0 0 3px #e3ebfa}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.hint{font-size:12px;color:var(--ink3);margin-top:6px;line-height:1.55}
+.hint b{color:var(--ink2);font-weight:600}
+.drop{border:1.5px dashed #c9d1dd;border-radius:10px;padding:18px;text-align:center;color:var(--ink2);cursor:pointer;background:#fafbfc;margin-top:8px;transition:all .15s}
+.drop:hover,.drop.over{border-color:var(--acc2);background:var(--accbg)}
+.fcard{border:1px solid var(--line);border-radius:11px;padding:12px;margin-top:10px;background:#fff}
+.fhead{display:flex;gap:12px;align-items:center}
+.fhead img{width:60px;height:60px;object-fit:contain;background:#fafbfc;border:1px solid var(--line);border-radius:8px}
+.fmeta{flex:1;font-size:12px;color:var(--ink3);line-height:1.6}
+.fmeta b{color:var(--ink);font-size:13px}
+.fbtns{display:flex;gap:4px;align-self:flex-start}
+.fcard textarea{min-height:56px}
+.logo-row{display:flex;align-items:center;gap:6px}
+.logo-row img{height:30px;border:1px solid var(--line);border-radius:4px}
+.stage{flex:1;overflow:auto;padding:28px;position:relative;background:#eceef2 radial-gradient(#d9dde4 1px,transparent 1px) 0 0/18px 18px}
+#holder{position:relative;margin:0 auto;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,41,.08),0 18px 50px -14px rgba(15,23,41,.28);background:#fff}
+.zoom select{width:auto;padding:6px 8px;font-size:13px}
+.addrow{display:flex;gap:6px;margin-bottom:4px}
+.fcard .tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--accbg);color:var(--acc)}
+.fcard.t-text .tag{background:#eaf5e7;color:#2f6b25}
+.fcard.t-table .tag{background:#fcf0e3;color:#9a5418}
+.fcard .ph{width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--ink3);background:#fafbfc;border:1px solid var(--line);border-radius:8px;flex:none}
+.fcard textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:pre;overflow-x:auto}
+
+@media (max-width:960px){
+  .hero-in{grid-template-columns:1fr}.hero h1{font-size:38px}.hero-art{margin-top:20px}
+  .grid4{grid-template-columns:1fr 1fr}.steps,.rules{grid-template-columns:1fr}
+  .nav-links a:not(.btn){display:none}
+  .main{flex-direction:column}.editor{width:100%;height:50vh;border-right:0;border-bottom:1px solid var(--line)}
+  .topbar{overflow-x:auto}
+}
+@media (max-width:560px){.grid4{grid-template-columns:1fr}.wrap{padding:0 18px}}
+/* ---------- Poster ---------- */
+.poster{position:absolute;top:0;left:0;transform-origin:0 0;background:#fff;display:flex;flex-direction:column;font-family:'Noto Sans KR',sans-serif;color:#1d232b;--s:1}
+.p-top{height:20px;background:var(--c);flex:none}
+.p-head{flex:none;display:flex;align-items:center;gap:40px;padding:34px 60px 30px;border-bottom:6px solid var(--c);background:linear-gradient(#fff,#f2f5fa)}
+.p-htext{flex:1;text-align:center;min-width:0}
+.p-title{margin:0;font-weight:900;color:var(--c);line-height:1.22;letter-spacing:-.01em}
+.p-authors{font-size:30px;margin-top:18px;font-weight:500}
+.p-affil{font-size:20px;color:#58606c;margin-top:8px;line-height:1.45}
+.p-logo{height:150px;width:auto;max-width:220px;object-fit:contain;flex:none}
+.p-logo-sp{width:150px;flex:none}
+.p-body{flex:1;min-height:0;position:relative;display:flex;gap:48px;padding:36px 56px;overflow:hidden;font-size:calc(19px * var(--s));line-height:1.5}
+.p-foot{flex:none;height:64px;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;letter-spacing:.04em}
+.col{flex:none}
+.measure{position:absolute;left:0;top:0;visibility:hidden}
+.sec-h{border-bottom:3px solid var(--c);line-height:1.3}
+.sec-h span{display:inline-block;background:var(--c);color:#fff;font-weight:700;font-size:1.3em;padding:.18em .9em .12em;border-radius:.35em .35em 0 0}
+.txt p{margin:0 0 .6em;text-align:justify;word-break:keep-all}
+.txt p:last-child{margin-bottom:0}
+.fig{margin:0}
+.fig img{display:block;object-fit:contain}
+.fig.below .fig-img{display:flex;justify-content:center}
+.fig figcaption{font-size:.86em;line-height:1.45;color:#2f3640;margin-top:.55em;text-align:justify;word-break:keep-all}
+.fig.right{display:flex;align-items:center;gap:1.1em}
+.fig.right .fig-img{flex:none}
+.fig.right figcaption{flex:1;margin-top:0;text-align:left}
+.fig .fn{color:var(--c);font-weight:700}
+.fig .ft{font-weight:700}
+.sub-h{font-weight:700;color:var(--c);font-size:1.08em;margin-bottom:.25em}
+.tblk .cap{font-size:.86em;line-height:1.45;margin-bottom:.45em;color:#2f3640}
+.tblk .cap .fn{color:var(--c);font-weight:700}.tblk .cap .ft{font-weight:700}
+.tblk table{width:100%;border-collapse:collapse;font-size:.84em;line-height:1.35}
+.tblk th,.tblk td{padding:.35em .5em;text-align:center}
+.tblk thead th{border-top:3px solid #222;border-bottom:1.5px solid #222;font-weight:700}
+.tblk tbody tr:last-child td{border-bottom:3px solid #222}
+.tblk tbody tr:nth-child(even) td{background:#f4f6fa}
+.tblk td:first-child,.tblk th:first-child{text-align:left}
+.empty-note{color:#9aa3af;font-size:1.1em;text-align:center;width:100%;padding-top:30%}
+</style>
+</head>
+<body>
+<!-- ================= LANDING ================= -->
+<div id="landing">
+  <nav class="nav" id="nav"><div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="mark"><i></i></span>Poster Studio</a>
+    <div class="nav-links"><a href="#features">기능</a><a href="#how">사용법</a><a href="#faq">FAQ</a><a class="btn pri" href="#studio">포스터 만들기</a></div>
+  </div></nav>
+
+  <header class="hero" id="top"><div class="wrap hero-in">
+    <div>
+      <span class="eyebrow">졸업논문 · 학회 포스터 초안 도구</span>
+      <h1>그림만 넣으면,<br><em>포스터 초안</em>이 완성됩니다</h1>
+      <p class="lead">Abstract, Results, Conclusion 내용과 figure를 넣으면 배치와 글자 크기, legend 위치를 자동으로 잡아 A0 포스터를 만들어 드려요. 완성본은 PowerPoint로 이어서 편집할 수 있습니다.</p>
+      <div class="cta"><a class="btn pri lg" href="#studio">지금 만들기 →</a><a class="btn lg ghost" href="#how">어떻게 동작하나요?</a></div>
+      <ul class="ticks"><li>설치·가입 없음</li><li>파일은 내 브라우저에서만 처리</li><li>PPTX · PDF · PNG</li></ul>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="mock">
+        <div class="mt"></div>
+        <div class="mh"><div class="bar t" style="width:82%"></div><div class="bar t" style="width:60%"></div><div class="bar" style="width:46%;margin-top:9px"></div><div class="bar" style="width:62%;height:5px"></div></div>
+        <div class="mb">
+          <div class="mc"><div class="sh"></div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:80%"></div><div class="ln"></div><div class="sh" style="margin-top:6px"></div><div class="ln" style="width:90%"></div>
+            <div class="fg" style="height:38px"><span style="height:30%;background:#e08a3c"></span><span style="height:55%;background:#e9c84a"></span><span style="height:40%;background:#5cae63"></span><span style="height:70%;background:#58b6d6"></span></div>
+            <div class="ln" style="width:70%"></div><div style="display:flex;gap:6px"><div class="ph" style="width:56%;height:78px"></div><div style="flex:1;display:flex;flex-direction:column;gap:4px;justify-content:center"><div class="ln"></div><div class="ln"></div><div class="ln" style="width:60%"></div></div></div>
+          </div>
+          <div class="mc"><div class="fg" style="height:86px"><span style="height:35%;background:#3a6fc4"></span><span style="height:60%;background:#ee7d31"></span><span style="height:88%;background:#7fae4a"></span><span style="height:52%;background:#9b59b6"></span></div><div class="ln"></div><div class="ln" style="width:75%"></div>
+            <div class="fg" style="height:70px"><span style="height:40%;background:#3a6fc4"></span><span style="height:92%;background:#ee7d31"></span></div><div class="ln"></div>
+            <div class="sh" style="margin-top:6px"></div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:65%"></div>
+          </div>
+        </div>
+        <div class="mf"></div>
+      </div>
+      <div class="chip c1"><b></b>한 장에 자동 배치 완료</div>
+      <div class="chip c2">Legend 위치 자동 · ×0.92</div>
+    </div>
+  </div></header>
+
+  <section class="blk" id="features"><div class="wrap">
+    <div class="sec-title"><span class="eyebrow">기능</span><h2>배치 고민은 맡기고, 내용에만 집중하세요</h2><p>포스터 템플릿을 하나하나 맞추는 대신, 내용을 넣으면 레이아웃이 따라옵니다.</p></div>
+    <div class="grid4">
+      <div class="feat"><div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1b3f8b" stroke-width="1.7"><rect x="2.5" y="2.5" width="6" height="15" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="8" rx="1.5"/><rect x="11.5" y="13" width="6" height="4.5" rx="1.5"/></svg></div><h3>자동 배치</h3><p>순서대로 단을 채우고, 한 장에 모두 들어가는 가장 큰 글자·그림 크기를 찾아줍니다.</p></div>
+      <div class="feat"><div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1b3f8b" stroke-width="1.7"><rect x="2.5" y="3" width="8" height="10" rx="1.5"/><path d="M13 5h4.5M13 8h4.5M13 11h3M2.5 16h15"/></svg></div><h3>Legend 위치 자동</h3><p>가로로 넓은 그림은 아래에, 세로로 긴 그림은 오른쪽에. 그림마다 직접 바꿀 수도 있어요.</p></div>
+      <div class="feat"><div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1b3f8b" stroke-width="1.7"><path d="M10 4v12M4 10h12"/><rect x="2.5" y="2.5" width="15" height="15" rx="3"/></svg></div><h3>그림·표·텍스트 무제한</h3><p>그림은 끌어다 놓고, 표는 엑셀에서 복사해 붙여넣기. 개수 제한 없이 순서대로 섞어 쓰세요.</p></div>
+      <div class="feat"><div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1b3f8b" stroke-width="1.7"><path d="M10 3v9m0 0l-3.5-3.5M10 12l3.5-3.5M3.5 13.5v2a1.5 1.5 0 001.5 1.5h10a1.5 1.5 0 001.5-1.5v-2"/></svg></div><h3>PPTX로 이어서 편집</h3><p>텍스트·그림·표가 각각 살아 있는 PowerPoint 파일로 저장돼요. PDF·PNG도 지원합니다.</p></div>
+    </div>
+  </div></section>
+
+  <section class="blk alt" id="how"><div class="wrap">
+    <div class="sec-title"><span class="eyebrow">사용법</span><h2>세 단계면 초안이 나옵니다</h2><p>Abstract · Results · Conclusion 세 섹션으로 구성된 세로 A0(2단) 또는 가로 A0(3단) 포스터를 만듭니다.</p></div>
+    <div class="steps">
+      <div class="step"><div class="n">입력</div><h3>제목과 본문 입력</h3><p>제목·저자·소속과 Abstract, Conclusion을 적어요. <code>*학명*</code>은 기울임, <code>^1</code>은 위첨자로 바뀝니다.</p></div>
+      <div class="step"><div class="n">추가</div><h3>Figure와 legend 넣기</h3><p>그림 파일을 끌어다 놓고 legend를 적으세요. 표와 설명 문단도 원하는 위치에 끼워 넣을 수 있어요.</p></div>
+      <div class="step"><div class="n">저장</div><h3>확인하고 내보내기</h3><p>오른쪽 미리보기로 확인한 뒤 PPTX로 저장해 PowerPoint에서 마무리하세요.</p></div>
+    </div>
+    <div class="rules">
+      <div class="rule"><div class="dg v"><div class="im" style="height:34px"></div><div class="lg"><i></i><i style="width:70%"></i></div></div><p><b>가로로 넓은 그림</b> (가로:세로 ≥ 1.15)<br>legend를 그림 아래에 둡니다.</p></div>
+      <div class="rule"><div class="dg"><div class="im" style="width:38px"></div><div class="lg"><i></i><i></i><i style="width:60%"></i></div></div><p><b>세로로 길거나 정사각형인 그림</b><br>legend를 그림 오른쪽에 둡니다.</p></div>
+    </div>
+  </div></section>
+
+  <section class="blk" id="faq"><div class="wrap">
+    <div class="sec-title"><span class="eyebrow">FAQ</span><h2>자주 묻는 질문</h2></div>
+    <div class="faq">
+      <details><summary>그림은 몇 개까지 넣을 수 있나요?</summary><p>제한이 없어요. 다만 내용이 많을수록 글자와 그림이 작아지고, 한 장에 다 들어가지 않으면 상단에 경고가 표시됩니다.</p></details>
+      <details><summary>내 그림 파일이 어딘가에 업로드되나요?</summary><p>아니요. 그림과 글은 모두 지금 쓰는 브라우저 안에서만 처리되고, 작업 내용은 이 브라우저에 자동 저장됩니다. 다른 컴퓨터에서 이어서 하려면 ‘프로젝트 저장(.json)’으로 파일을 받아두세요.</p></details>
+      <details><summary>PPTX에서 글자를 고칠 수 있나요?</summary><p>네. 제목·본문·legend는 텍스트 상자로, 그림은 개별 이미지로, 표는 PowerPoint 표로 저장됩니다. 글꼴은 Arial로 저장되므로 화면과 줄바꿈 위치가 조금 다를 수 있어요.</p></details>
+      <details><summary>어떤 그림 형식을 지원하나요?</summary><p>PNG, JPG, SVG를 지원합니다. PDF로 된 그림은 PNG로 변환해서 넣어주세요. 큰 이미지는 자동으로 적당한 해상도로 줄여 처리합니다.</p></details>
+    </div>
+  </div></section>
+
+  <section class="final"><div class="wrap"><h2>발표 준비, 초안부터 빠르게</h2><p>예시 포스터가 미리 채워져 있어 바로 둘러볼 수 있어요.</p><a class="btn lg" href="#studio">포스터 만들기 →</a></div></section>
+  <footer class="foot"><div class="wrap"><span>Poster Studio — 졸업논문 포스터 초안 도구</span><span>A0 · Abstract / Results / Conclusion</span></div></footer>
+</div>
+
+<!-- ================= STUDIO ================= -->
+<div id="studio" class="hidden">
+<div class="topbar">
+  <a class="brand" href="#top" title="소개 페이지로"><span class="mark"><i></i></span>Poster Studio</a>
+  <div class="tsep"></div>
+  <button class="btn" id="bExample">예시 불러오기</button>
+  <button class="btn" id="bNew">새로 만들기</button>
+  <button class="btn" id="bSaveProj">프로젝트 저장</button>
+  <button class="btn" id="bLoadProj">열기</button>
+  <input type="file" id="fProj" accept=".json,application/json" class="hidden">
+  <span class="spacer"></span>
+  <span id="status">준비됨</span>
+  <div class="zoom"><select id="zoom" title="미리보기 배율"><option value="fit">화면 맞춤</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="1">100%</option></select></div>
+  <div class="tsep"></div>
+  <span class="seg-l">내보내기</span>
+  <div class="seg"><button class="btn" id="bPng">PNG</button><button class="btn" id="bPdf">PDF</button></div>
+  <button class="btn pri" id="bPptx">PPTX 저장</button>
+</div>
+
+<div class="main">
+  <div class="editor" id="editor">
+    <div class="grp">
+    <h2><span class="k">1</span>기본 정보</h2>
+    <label>제목</label>
+    <textarea data-f="title" style="min-height:56px" placeholder="Optimization of ..."></textarea>
+    <label>저자</label>
+    <input type="text" data-f="authors" placeholder="Hong Gildong^1, Kim Chulsoo^1,2*">
+    <label>소속</label>
+    <textarea data-f="affil" style="min-height:56px" placeholder="^1Department of ..., Seoul National University"></textarea>
+    <div class="hint"><b>^1</b>, <b>^1,2*</b>, <b>^{a}</b> → 위첨자 · <b>*텍스트*</b> → 기울임(학명 등)</div>
+    <div class="row">
+      <div><label>하단 문구</label><input type="text" data-f="footer"></div>
+      <div style="flex:none;width:84px"><label>테마 색</label><input type="color" data-f="color" style="width:100%;height:37px;border:1px solid var(--line);border-radius:8px;padding:3px;background:#fff"></div>
+    </div>
+    <div class="row">
+      <div><label>용지</label><select data-f="orient"><option value="portrait">세로 A0 · 2단</option><option value="landscape">가로 A0 · 3단</option></select></div>
+      <div><label>로고 (선택)</label><div class="logo-row"><button class="btn sm" id="bLogo">선택</button><button class="btn sm" id="bLogoDel">삭제</button><img id="logoPrev" class="hidden" alt=""></div><input type="file" id="fLogo" accept="image/*" class="hidden"></div>
+    </div>
+    </div>
+
+    <div class="grp">
+    <h2><span class="k">2</span>Abstract</h2>
+    <textarea data-f="abstract" style="min-height:140px" placeholder="빈 줄로 문단을 구분합니다."></textarea>
+    </div>
+
+    <div class="grp">
+    <h2><span class="k">3</span>Results <span id="itemCount" style="font-weight:500;font-size:12px;color:var(--ink3)"></span></h2>
+    <label>도입 문단 (선택)</label>
+    <textarea data-f="resultsIntro" placeholder="Results 맨 위에 들어갈 설명"></textarea>
+    <label>항목 추가</label>
+    <div class="addrow"><button class="btn sm" id="addFig">＋ 그림</button><button class="btn sm" id="addTxt">＋ 텍스트 문단</button><button class="btn sm" id="addTbl">＋ 표</button></div>
+    <div class="drop" id="drop">그림 파일을 끌어다 놓거나 <b>클릭</b>해서 추가<br><span class="hint">개수 제한 없음 · 여러 장 한 번에 · PNG/JPG/SVG</span></div>
+    <input type="file" id="fFig" accept="image/*" multiple class="hidden">
+    <input type="file" id="fSwap" accept="image/*" class="hidden">
+    <div id="figList" style="margin-bottom:14px"></div>
+    </div>
+
+    <h2><span class="k">4</span>Conclusion</h2>
+    <textarea data-f="conclusion" style="min-height:120px"></textarea>
+  </div>
+
+  <div class="stage" id="stage"><div id="holder"><div id="poster" class="poster"></div></div></div>
+</div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const DIM = { portrait:{W:1600,H:2263,cols:2,mm:[841,1189]}, landscape:{W:2263,H:1600,cols:3,mm:[1189,841]} };
+const PAD_X = 56, COL_GAP = 48, BODY_PAD_Y = 36;
+const LS_KEY = 'poster-maker-v1';
+
+function blank(){ return {title:'',authors:'',affil:'',footer:'Seoul National University',color:'#173f7d',orient:'portrait',logo:null,abstract:'',resultsIntro:'',conclusion:'',figures:[]}; }
+let S = blank();
+try { const raw = localStorage.getItem(LS_KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch(e) {}
+
+/* ---------- text helpers ---------- */
+function esc(t){ return (t||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function inline(t){
+  return esc(t)
+    .replace(/\*(.+?)\*/g,'<i>$1</i>')
+    .replace(/\^\{(.+?)\}/g,'<sup>$1</sup>')
+    .replace(/\^([0-9*†‡#]+(?:,[0-9*†‡#]+)*)/g,'<sup>$1</sup>');
+}
+function paras(t){ return (t||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>'<p>'+inline(p).replace(/\n/g,'<br>')+'</p>').join(''); }
+function parseTable(data){
+  const lines = (data||'').split(/\r?\n/).map(l=>l.trim()).filter(l => l && !/^\|?[\s:|-]+\|?$/.test(l));
+  return lines.map(l => {
+    if (l.includes('\t')) return l.split('\t');
+    if (l.includes('|')) return l.replace(/^\||\|$/g,'').split('|');
+    return l.split(',');
+  }).map(r => r.map(c => c.trim()));
+}
+function tableHtml(rows, header){
+  if (!rows.length) return '<table><tbody><tr><td style="color:#aaa">(표 데이터를 입력하세요)</td></tr></tbody></table>';
+  const n = Math.max(...rows.map(r=>r.length)), pad = r => r.concat(Array(n-r.length).fill(''));
+  const head = header ? '<thead><tr>'+pad(rows[0]).map(c=>`<th>${inline(c)}</th>`).join('')+'</tr></thead>' : '';
+  const body = (header ? rows.slice(1) : rows).map(r => '<tr>'+pad(r).map(c=>`<td>${inline(c)}</td>`).join('')+'</tr>').join('');
+  return `<table>${head}<tbody>${body}</tbody></table>`;
+}
+function figMode(f){ return f.mode && f.mode!=='auto' ? f.mode : (f.w/f.h >= 1.15 ? 'below' : 'right'); }
+
+/* ---------- layout engine ---------- */
+let lastFit = null;
+function renderPoster(){
+  if ($('#studio').classList.contains('hidden')) return; // laid out when the studio opens
+  const d = DIM[S.orient], P = $('#poster');
+  P.className = 'poster ' + S.orient;
+  P.style.width = d.W+'px'; P.style.height = d.H+'px';
+  P.style.setProperty('--c', S.color || '#173f7d');
+  P.innerHTML =
+    `<div class="p-top"></div>
+     <header class="p-head">${S.logo?'<div class="p-logo-sp"></div>':''}
+       <div class="p-htext"><h1 class="p-title">${inline(S.title)||'Poster Title'}</h1>
+       <div class="p-authors">${inline(S.authors)}</div>
+       <div class="p-affil">${inline(S.affil).replace(/\n/g,'<br>')}</div></div>
+       ${S.logo?`<img class="p-logo" src="${S.logo}">`:''}
+     </header>
+     <main class="p-body"></main>
+     <footer class="p-foot">${inline(S.footer)}</footer>`;
+
+  // title: shrink until ≤ 2 lines
+  const h1 = P.querySelector('.p-title');
+  let fs = S.orient==='portrait' ? 60 : 66; h1.style.fontSize = fs+'px';
+  while (fs > 30 && h1.offsetHeight > fs*1.22*2 + 6) { fs -= 2; h1.style.fontSize = fs+'px'; }
+
+  const body = P.querySelector('.p-body');
+  const avail = body.clientHeight - 2*BODY_PAD_Y;
+  const colW = (d.W - 2*PAD_X - (d.cols-1)*COL_GAP) / d.cols;
+
+  // build blocks in reading order
+  const blocks = [];
+  const mk = (cls, html) => { const e = document.createElement('div'); e.className = cls; e.innerHTML = html; return e; };
+  const sec = name => mk('sec-h', `<span>${name}</span>`);
+  if (S.abstract.trim()) { blocks.push({el:sec('Abstract'),kwn:1}); blocks.push({el:mk('txt',paras(S.abstract))}); }
+  if (S.resultsIntro.trim() || S.figures.length) {
+    blocks.push({el:sec('Results'),kwn:1});
+    if (S.resultsIntro.trim()) blocks.push({el:mk('txt',paras(S.resultsIntro))});
+  }
+  let nFig = 0, nTbl = 0;
+  S.figures.forEach(f => {
+    const type = f.type || 'figure';
+    const title = f.legendTitle && f.legendTitle.trim() ? ` <span class="ft">${inline(f.legendTitle)}</span>` : '';
+    const legend = inline(f.legend||'').replace(/\n/g,'<br>');
+    if (type === 'text') {
+      const h = f.heading && f.heading.trim() ? `<div class="sub-h">${inline(f.heading)}</div>` : '';
+      if (h || (f.text||'').trim()) blocks.push({el:mk('txt', h + paras(f.text))});
+      return;
+    }
+    if (f.text && f.text.trim()) blocks.push({el:mk('txt',paras(f.text)), kwn:1});
+    if (type === 'table') {
+      nTbl++;
+      blocks.push({el:mk('tblk', `<div class="cap"><span class="fn">Table ${nTbl}.</span>${title} ${legend}</div>` + tableHtml(parseTable(f.data), f.header !== false))});
+      return;
+    }
+    nFig++;
+    const mode = figMode(f);
+    const e = document.createElement('figure'); e.className = 'fig '+mode;
+    e.innerHTML = `<div class="fig-img"><img src="${f.src}" alt=""></div><figcaption><span class="fn">Figure ${nFig}.</span>${title} ${legend}</figcaption>`;
+    blocks.push({el:e, fig:f, mode});
+  });
+  if (S.conclusion.trim()) { blocks.push({el:sec('Conclusion'),kwn:1}); blocks.push({el:mk('txt',paras(S.conclusion))}); }
+
+  if (!blocks.length) { body.innerHTML = '<div class="empty-note">왼쪽에서 내용을 입력하거나 그림을 추가하세요.<br>(상단의 “예시 불러오기”로 미리 볼 수 있어요)</div>'; setStatus('내용 없음'); lastFit=null; return; }
+
+  const meas = document.createElement('div'); meas.className = 'col measure'; meas.style.width = colW+'px';
+  body.appendChild(meas); blocks.forEach(b => meas.appendChild(b.el));
+
+  function sizeFigs(s){
+    blocks.forEach(b => {
+      if (!b.fig) return;
+      const r = b.fig.w / b.fig.h, img = b.el.querySelector('img'), k = +b.fig.size || 1;
+      let w;
+      if (b.mode === 'below') w = Math.min(colW, 480*s*k*r);
+      else { w = Math.min(colW*Math.min(0.72, 0.58*k), 540*s*k*r); b.el.querySelector('.fig-img').style.width = w+'px'; }
+      img.style.width = w+'px'; img.style.height = (w/r)+'px';
+    });
+  }
+  function pack(s){
+    P.style.setProperty('--s', s); sizeFigs(s);
+    const g = 20*s, hs = blocks.map(b => b.el.offsetHeight);
+    // keep headings (and per-figure text) with the following block
+    const units = []; let cur = null;
+    blocks.forEach((b,i) => { if(!cur) cur={idx:[],h:0}; cur.h += hs[i] + (cur.idx.length? g*0.6 : 0); cur.idx.push(i); if(!b.kwn){units.push(cur);cur=null;} });
+    if (cur) units.push(cur);
+    const cols=[[]], used=[0]; let ok = true;
+    for (const u of units) {
+      let c = cols.length-1;
+      if (cols[c].length && used[c] + g + u.h > avail) { cols.push([]); used.push(0); c++; }
+      used[c] += (cols[c].length? g : 0) + u.h; cols[c].push(u);
+      if (used[c] > avail) ok = false;
+    }
+    if (cols.length > d.cols) ok = false;
+    return {ok, cols, used, g, s};
+  }
+
+  // binary search the largest scale that fits everything
+  let lo = 0.45, hi = 2.0, good = null;
+  for (let k=0; k<13; k++) { const m=(lo+hi)/2; if (pack(m).ok) { good=m; lo=m; } else hi=m; }
+  const fit = good ? pack(good) : pack(0.45);
+
+  // place into columns, spreading leftover space a little
+  const colEls = [];
+  for (let c=0; c<d.cols; c++) {
+    const col = document.createElement('div'); col.className='col'; col.style.width=colW+'px';
+    const us = fit.cols[c] || [];
+    const extra = Math.max(0, avail - (fit.used[c]||0));
+    const isLast = c === fit.cols.length-1;
+    const add = us.length>1 && !isLast ? Math.min(extra/(us.length-1), 28*fit.s) : Math.min(us.length>1? extra/(us.length-1):0, 18*fit.s);
+    us.forEach((u,ui) => u.idx.forEach((i,j) => {
+      const el = blocks[i].el;
+      el.style.marginTop = (ui===0 && j===0) ? '0px' : (j===0 ? (fit.g+add)+'px' : (fit.g*0.6)+'px');
+      col.appendChild(el);
+    }));
+    colEls.push(col);
+  }
+  colEls.forEach(c => body.appendChild(c));
+  meas.remove();
+
+  lastFit = fit;
+  if (good) setStatus(`✓ 한 장에 모두 배치됨 · 글자/그림 배율 ×${fit.s.toFixed(2)} · ${fit.cols.length}/${d.cols}단 사용`);
+  else setStatus('⚠ 내용이 넘칩니다 — 문단을 줄이거나 그림 수를 줄여주세요', true);
+}
+function setStatus(t, warn){ const s=$('#status'); s.textContent=t; s.classList.toggle('warn', !!warn); }
+
+/* ---------- preview scaling ---------- */
+function fitPreview(){
+  const d = DIM[S.orient], z = $('#zoom').value, stage = $('#stage');
+  if (!stage.clientWidth) return;
+  const sc = z==='fit' ? Math.min((stage.clientWidth-40)/d.W, (stage.clientHeight-40)/d.H) : parseFloat(z);
+  $('#poster').style.transform = `scale(${sc})`;
+  const h = $('#holder'); h.style.width = d.W*sc+'px'; h.style.height = d.H*sc+'px';
+}
+
+let tmr = null;
+function update(now){
+  clearTimeout(tmr);
+  const run = () => { renderPoster(); fitPreview(); persist(); };
+  if (now) run(); else tmr = setTimeout(run, 180);
+}
+function persist(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
+
+/* ---------- editor binding ---------- */
+function syncFields(){
+  document.querySelectorAll('[data-f]').forEach(el => { el.value = S[el.dataset.f] ?? ''; });
+  const lp = $('#logoPrev'); if (S.logo) { lp.src=S.logo; lp.classList.remove('hidden'); } else lp.classList.add('hidden');
+  renderFigList();
+}
+document.querySelectorAll('[data-f]').forEach(el => {
+  el.addEventListener('input', () => { S[el.dataset.f] = el.value; update(el.tagName==='SELECT'); });
+});
+$('#zoom').addEventListener('change', fitPreview);
+window.addEventListener('resize', fitPreview);
+
+function renderFigList(){
+  const L = $('#figList');
+  let nF=0, nT=0;
+  const sel = (k, cur, opts) => `<select data-k="${k}">` + opts.map(([v,t]) => `<option value="${v}"${String(cur)===String(v)?' selected':''}>${t}</option>`).join('') + '</select>';
+  const btns = `<div class="fbtns"><button class="btn sm" data-act="up" title="위로">↑</button><button class="btn sm" data-act="down" title="아래로">↓</button><button class="btn sm" data-act="del" title="삭제">✕</button></div>`;
+  L.innerHTML = S.figures.map((f,i) => {
+    const type = f.type || 'figure';
+    let inner = '';
+    if (type === 'figure') {
+      nF++;
+      const auto = f.w/f.h >= 1.15 ? '아래' : '오른쪽';
+      inner = `<div class="fhead"><img src="${f.src}">
+          <div class="fmeta"><span class="tag">그림</span> <b>Figure ${nF}</b><br>${f.w}×${f.h}px · 비율 ${(f.w/f.h).toFixed(2)}<br><button class="btn sm" data-act="swap">이미지 교체</button></div>${btns}</div>
+        <label>Legend 제목 (굵게 표시, 선택)</label><input type="text" data-k="legendTitle" value="${esc(f.legendTitle||'')}">
+        <label>Legend 내용</label><textarea data-k="legend">${esc(f.legend||'')}</textarea>
+        <label>본문 결과 설명 (그림 위에 들어감, 선택)</label><textarea data-k="text">${esc(f.text||'')}</textarea>
+        <div class="row"><div><label>Legend 위치</label>${sel('mode', f.mode||'auto', [['auto',`자동 (${auto})`],['below','그림 아래'],['right','그림 오른쪽']])}</div>
+        <div><label>그림 크기</label>${sel('size', f.size||1, [['0.75','작게'],['1','보통'],['1.3','크게']])}</div></div>`;
+    } else if (type === 'table') {
+      nT++;
+      inner = `<div class="fhead"><div class="ph">▦</div><div class="fmeta"><span class="tag">표</span> <b>Table ${nT}</b><br>${parseTable(f.data).length}행</div>${btns}</div>
+        <label>표 제목 (굵게 표시)</label><input type="text" data-k="legendTitle" value="${esc(f.legendTitle||'')}">
+        <label>표 설명 (선택)</label><textarea data-k="legend" style="min-height:40px">${esc(f.legend||'')}</textarea>
+        <label>표 데이터 — 엑셀에서 복사해 붙여넣기 (또는 쉼표/｜ 구분)</label><textarea class="mono" data-k="data" placeholder="Treatment&#9;Efficiency (%)&#10;Control&#9;18.2 ± 3.1">${esc(f.data||'')}</textarea>
+        <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" data-k="header" ${f.header!==false?'checked':''}> 첫 행을 머리글로</label>
+        <label>본문 결과 설명 (표 위에 들어감, 선택)</label><textarea data-k="text">${esc(f.text||'')}</textarea>`;
+    } else {
+      inner = `<div class="fhead"><div class="ph">¶</div><div class="fmeta"><span class="tag">텍스트</span><br>Results 중간에 들어가는 문단</div>${btns}</div>
+        <label>소제목 (선택)</label><input type="text" data-k="heading" value="${esc(f.heading||'')}">
+        <label>내용</label><textarea data-k="text">${esc(f.text||'')}</textarea>`;
+    }
+    return `<div class="fcard t-${type}" data-i="${i}">${inner}</div>`;
+  }).join('');
+  $('#itemCount').textContent = S.figures.length ? `· 그림 ${nF} · 표 ${nT} · 텍스트 ${S.figures.length-nF-nT}` : '';
+}
+function onItemEdit(e){
+  const card = e.target.closest('.fcard'), k = e.target.dataset.k; if (!card || !k) return;
+  const it = S.figures[+card.dataset.i];
+  it[k] = e.target.type==='checkbox' ? e.target.checked : e.target.value;
+  update(k==='mode' || k==='size' || k==='header');
+  if (k==='data') { const m = card.querySelector('.fmeta'); if (m) m.innerHTML = m.innerHTML.replace(/<br>\d+행/, '<br>'+parseTable(it.data).length+'행'); }
+}
+$('#figList').addEventListener('input', onItemEdit);
+$('#figList').addEventListener('change', e => { if (e.target.type==='checkbox') onItemEdit(e); });
+let swapIdx = -1;
+$('#figList').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const i = +b.closest('.fcard').dataset.i, F = S.figures;
+  if (b.dataset.act==='swap') { swapIdx = i; $('#fSwap').click(); return; }
+  if (b.dataset.act==='del') F.splice(i,1);
+  if (b.dataset.act==='up' && i>0) [F[i-1],F[i]]=[F[i],F[i-1]];
+  if (b.dataset.act==='down' && i<F.length-1) [F[i+1],F[i]]=[F[i],F[i+1]];
+  renderFigList(); update(true);
+});
+function addItem(it){
+  S.figures.push(it); renderFigList(); update(true);
+  const cards = document.querySelectorAll('.fcard'), c = cards[cards.length-1];
+  if (c) { c.scrollIntoView({behavior:'smooth', block:'center'}); const t = c.querySelector('input[type=text],textarea'); if (t) setTimeout(()=>t.focus(), 300); }
+}
+$('#addFig').addEventListener('click', () => $('#fFig').click());
+$('#addTxt').addEventListener('click', () => addItem({type:'text', heading:'', text:''}));
+$('#addTbl').addEventListener('click', () => addItem({type:'table', legendTitle:'', legend:'', data:'', header:true, text:''}));
+
+/* ---------- image input ---------- */
+function readImage(file, maxSide=2400){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = rej;
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => rej(new Error('이미지를 읽을 수 없습니다: '+file.name));
+      img.onload = () => {
+        let w = img.naturalWidth || 1000, h = img.naturalHeight || 750, src = fr.result;
+        const isSvg = /svg/.test(file.type);
+        if (isSvg || Math.max(w,h) > maxSide) {
+          const k = isSvg ? Math.max(1, 2000/Math.max(w,h)) : maxSide/Math.max(w,h);
+          const cw = Math.round(w*k), ch = Math.round(h*k);
+          const c = document.createElement('canvas'); c.width=cw; c.height=ch;
+          const ctx = c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,cw,ch); ctx.drawImage(img,0,0,cw,ch);
+          src = /jpe?g/.test(file.type) ? c.toDataURL('image/jpeg',0.92) : c.toDataURL('image/png');
+          w=cw; h=ch;
+        }
+        res({src, w, h, name:file.name});
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+async function addFigures(files){
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) continue;
+    try { const im = await readImage(f); S.figures.push({type:'figure',src:im.src,w:im.w,h:im.h,legendTitle:'',legend:'',text:'',mode:'auto',size:1}); }
+    catch(e) { setStatus(e.message, true); }
+  }
+  renderFigList(); update(true);
+}
+const drop = $('#drop');
+drop.addEventListener('click', () => $('#fFig').click());
+$('#fFig').addEventListener('change', e => { addFigures([...e.target.files]); e.target.value=''; });
+['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => addFigures([...e.dataTransfer.files]));
+$('#fSwap').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value=''; if (!f || swapIdx<0 || !S.figures[swapIdx]) return;
+  try { const im = await readImage(f); Object.assign(S.figures[swapIdx], {src:im.src, w:im.w, h:im.h}); renderFigList(); update(true); } catch(err) { setStatus(err.message, true); }
+});
+$('#bLogo').addEventListener('click', () => $('#fLogo').click());
+$('#fLogo').addEventListener('change', async e => { const f=e.target.files[0]; if(!f) return; const im=await readImage(f,800); S.logo=im.src; syncFields(); update(true); e.target.value=''; });
+$('#bLogoDel').addEventListener('click', () => { S.logo=null; syncFields(); update(true); });
+
+/* ---------- save / export ---------- */
+let dlNS;
+async function saveFile(filename, blob){
+  try {
+    if (dlNS === undefined) dlNS = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null;
+    if (dlNS) {
+      try { await dlNS.save({filename, data: blob}); }
+      catch(err) { if (err && /type|data/i.test(String(err.message||err))) await dlNS.save({filename, data: new Uint8Array(await blob.arrayBuffer())}); else throw err; }
+      setStatus('저장됨: '+filename); return;
+    }
+  } catch(err) { setStatus('저장이 취소되었거나 실패했습니다', true); return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  setStatus('저장됨: '+filename);
+}
+function baseName(){ return (S.title||'poster').replace(/[^\w가-힣]+/g,'_').slice(0,40) || 'poster'; }
+async function capture(scale){
+  const d = DIM[S.orient];
+  return html2canvas($('#poster'), {scale, backgroundColor:'#fff', width:d.W, height:d.H, windowWidth:d.W+200, windowHeight:d.H+200, useCORS:true,
+    onclone: doc => { const p=doc.getElementById('poster'); p.style.transform='none'; const h=doc.getElementById('holder'); h.style.overflow='visible'; h.style.width=d.W+'px'; h.style.height=d.H+'px'; }});
+}
+$('#bPng').addEventListener('click', async () => {
+  if (typeof html2canvas==='undefined') return setStatus('내보내기 라이브러리를 불러오지 못했습니다', true);
+  setStatus('PNG 만드는 중…');
+  const c = await capture(2);
+  c.toBlob(b => saveFile(baseName()+'.png', b), 'image/png');
+});
+$('#bPdf').addEventListener('click', async () => {
+  if (typeof html2canvas==='undefined' || !window.jspdf) return setStatus('내보내기 라이브러리를 불러오지 못했습니다', true);
+  setStatus('PDF 만드는 중… (A0, 몇 초 걸려요)');
+  const d = DIM[S.orient], c = await capture(2.4);
+  const pdf = new jspdf.jsPDF({orientation:S.orient, unit:'mm', format:'a0', compress:true});
+  pdf.addImage(c.toDataURL('image/jpeg',0.93), 'JPEG', 0, 0, d.mm[0], d.mm[1]);
+  await saveFile(baseName()+'.pdf', pdf.output('blob'));
+});
+/* ---------- PPTX (editable) ---------- */
+function hex(c){ return (c||'#173f7d').replace('#','').toUpperCase(); }
+function runsFrom(node, base, out){
+  base = base || {}; out = out || [];
+  node.childNodes.forEach(n => {
+    if (n.nodeType === 3) { const t = n.textContent.replace(/\s+/g,' '); if (t) out.push({text:t, options:{...base}}); return; }
+    if (n.nodeType !== 1) return;
+    const tag = n.tagName, cl = n.classList;
+    if (tag === 'BR') { if (out.length) out[out.length-1].options.breakLine = true; return; }
+    const o = {...base};
+    if (tag==='I' || tag==='EM') o.italic = true;
+    if (tag==='B' || tag==='STRONG' || cl.contains('ft') || cl.contains('fn') || cl.contains('sub-h')) o.bold = true;
+    if (cl.contains('fn') || cl.contains('sub-h')) o.color = hex(S.color);
+    if (tag==='SUP') o.superscript = true;
+    runsFrom(n, o, out);
+    if ((tag==='P' || cl.contains('sub-h')) && out.length) out[out.length-1].options.breakLine = true;
+  });
+  return out;
+}
+function cleanRuns(r){
+  // trim spaces at paragraph starts/ends, drop trailing break
+  let start = true;
+  r.forEach(x => { if (start) x.text = x.text.replace(/^\s+/,''); start = !!x.options.breakLine; if (x.options.breakLine) x.text = x.text.replace(/\s+$/,''); });
+  if (r.length) delete r[r.length-1].options.breakLine;
+  return r.filter((x,i) => x.text || x.options.breakLine);
+}
+async function exportPptx(){
+  if (typeof PptxGenJS === 'undefined') return setStatus('PPTX 라이브러리를 불러오지 못했습니다', true);
+  setStatus('PPTX 만드는 중…');
+  const d = DIM[S.orient], P = $('#poster'), pr = P.getBoundingClientRect(), sc = pr.width / d.W;
+  const IN = (d.mm[0]/25.4) / d.W, PT = IN*72, FONT = 'Arial', C = hex(S.color);
+  const box = el => { const r = el.getBoundingClientRect(); return {x:(r.left-pr.left)/sc*IN, y:(r.top-pr.top)/sc*IN, w:r.width/sc*IN, h:r.height/sc*IN}; };
+  const fpt = el => +(parseFloat(getComputedStyle(el).fontSize) * PT).toFixed(1);
+  const pptx = new PptxGenJS();
+  pptx.defineLayout({name:'POSTER', width:d.mm[0]/25.4, height:d.mm[1]/25.4});
+  pptx.layout = 'POSTER';
+  pptx.title = (S.title||'Poster').replace(/[*^{}]/g,'');
+  const sl = pptx.addSlide(); sl.background = {color:'FFFFFF'};
+  const rect = (b, color) => sl.addShape(pptx.ShapeType.rect, {x:b.x, y:b.y, w:b.w, h:b.h, fill:{color}, line:{color, width:0}});
+  const text = (el, opt) => {
+    const b = box(el), runs = cleanRuns(runsFrom(el));
+    if (!runs.length) return;
+    sl.addText(runs, Object.assign({x:b.x, y:b.y, w:b.w, h:b.h*1.06, margin:0, fontFace:FONT, fontSize:fpt(el), color:'1D232B', valign:'top', lineSpacingMultiple:1.2, autoFit:false}, opt||{}));
+  };
+  // header & footer
+  rect(box(P.querySelector('.p-top')), C);
+  const hd = P.querySelector('.p-head'), hb = box(hd);
+  rect(hb, 'F4F7FB');
+  rect({x:hb.x, y:hb.y+hb.h-6*IN, w:hb.w, h:6*IN}, C);
+  const logo = P.querySelector('.p-logo'); if (logo) sl.addImage({data:logo.src, ...box(logo)});
+  { const t = P.querySelector('.p-title'); text(t, {align:'center', bold:true, color:C, lineSpacingMultiple:1.05, valign:'middle', fontSize:+(fpt(t)*0.92).toFixed(1)}); }
+  text(P.querySelector('.p-authors'), {align:'center', valign:'middle'});
+  text(P.querySelector('.p-affil'), {align:'center', color:'58606C', valign:'middle'});
+  const ft = P.querySelector('.p-foot'); rect(box(ft), C);
+  text(ft, {align:'center', valign:'middle', bold:true, color:'FFFFFF'});
+  // body blocks
+  P.querySelectorAll('.p-body .col > *').forEach(el => {
+    const cl = el.classList;
+    if (cl.contains('sec-h')) {
+      const b = box(el), sp = el.querySelector('span'), sb = box(sp);
+      rect({x:b.x, y:b.y+b.h-3*IN, w:b.w, h:3*IN}, C);
+      sl.addText(sp.textContent, {x:sb.x, y:sb.y, w:sb.w, h:sb.h, shape:pptx.ShapeType.rect, fill:{color:C}, color:'FFFFFF', bold:true, fontFace:FONT, fontSize:fpt(sp), align:'center', valign:'middle', margin:0});
+    } else if (cl.contains('txt')) {
+      const fs = fpt(el);
+      text(el, {align:'justify', lineSpacingMultiple:1.25, paraSpaceAfter:+(fs*0.6).toFixed(1)});
+    } else if (el.tagName === 'FIGURE') {
+      const img = el.querySelector('img'); sl.addImage({data:img.src, ...box(img)});
+      text(el.querySelector('figcaption'), {align: cl.contains('right') ? 'left' : 'justify', color:'2F3640'});
+    } else if (cl.contains('tblk')) {
+      text(el.querySelector('.cap'), {color:'2F3640'});
+      const tb = el.querySelector('table'), b = box(tb), trs = [...tb.querySelectorAll('tr')];
+      const hasHead = !!tb.querySelector('thead'), fs = fpt(tb), last = trs.length-1;
+      const none = {type:'none'}, thick = {type:'solid', pt:2.25, color:'222222'}, thin = {type:'solid', pt:1, color:'222222'};
+      const rows = trs.map((tr, ri) => [...tr.children].map((c, ci) => {
+        const isHead = hasHead && ri === 0;
+        return {text: cleanRuns(runsFrom(c)).map(x => (x.text ? x : {...x, text:' '})), options:{
+          bold:isHead, align: ci===0 ? 'left' : 'center', valign:'middle', fontSize:fs, fontFace:FONT, color:'1D232B', margin:[2,4,2,4],
+          fill:{color: (!isHead && (hasHead ? ri : ri+1) % 2 === 0) ? 'F4F6FA' : 'FFFFFF'},
+          border:[ri===0 ? thick : (isHead ? none : none), none, isHead ? thin : (ri===last ? thick : none), none]}};
+      }));
+      const colW = [...trs[0].children].map(c => box(c).w);
+      sl.addTable(rows, {x:b.x, y:b.y, w:b.w, colW, rowH: trs.map(tr => box(tr).h), autoPage:false});
+    }
+  });
+  const blob = await pptx.write({outputType:'blob'});
+  await saveFile(baseName()+'.pptx', blob);
+}
+$('#bPptx').addEventListener('click', () => exportPptx().catch(err => setStatus('PPTX 저장 실패: '+(err.message||err), true)));
+$('#bSaveProj').addEventListener('click', () => saveFile(baseName()+'_project.json', new Blob([JSON.stringify(S)], {type:'application/json'})));
+$('#bLoadProj').addEventListener('click', () => $('#fProj').click());
+$('#fProj').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { S = Object.assign(blank(), JSON.parse(await f.text())); syncFields(); update(true); setStatus('프로젝트를 불러왔습니다'); }
+  catch(err) { setStatus('JSON 파일을 읽을 수 없습니다', true); }
+  e.target.value='';
+});
+function hasWork(){ return !!(S.title || S.abstract || S.conclusion || S.figures.length); }
+function confirmClick(btn, label, fn){
+  btn.addEventListener('click', () => {
+    if (!hasWork() || btn.dataset.armed) { clearTimeout(btn._t); delete btn.dataset.armed; btn.textContent = label; btn.classList.remove('warn'); fn(); return; }
+    btn.dataset.armed = '1'; btn.textContent = '지금 작업을 지울까요? 한 번 더 클릭'; btn.classList.add('warn');
+    btn._t = setTimeout(() => { delete btn.dataset.armed; btn.textContent = label; btn.classList.remove('warn'); }, 3500);
+  });
+}
+confirmClick($('#bNew'), '새로 만들기', () => { S = blank(); syncFields(); update(true); });
+
+/* ---------- example data ---------- */
+function cv(w,h,draw){ const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); draw(x); return {src:c.toDataURL('image/png'), w, h}; }
+function barChart(labels, vals, errs, ylab, w=900, h=700){
+  return cv(w,h,x=>{
+    const L=120,B=110,T=40,R=30, ph=h-T-B, pw=w-L-R, max=Math.max(...vals.map((v,i)=>v+errs[i]))*1.2;
+    x.strokeStyle='#333'; x.lineWidth=3; x.beginPath(); x.moveTo(L,T); x.lineTo(L,h-B); x.lineTo(w-R,h-B); x.stroke();
+    x.font='26px sans-serif'; x.fillStyle='#333'; x.textAlign='right';
+    for(let k=0;k<=4;k++){ const y=h-B-ph*k/4; x.fillText((max*k/4).toFixed(0),L-12,y+9); x.beginPath(); x.moveTo(L-8,y); x.lineTo(L,y); x.stroke(); }
+    const cols=['#3a6fc4','#ee7d31','#7fae4a','#9b59b6'], bw=pw/labels.length*0.45;
+    labels.forEach((lb,i)=>{ const cx=L+pw*(i+0.5)/labels.length, bh=ph*vals[i]/max, eh=ph*errs[i]/max;
+      x.fillStyle=cols[i%4]; x.fillRect(cx-bw/2,h-B-bh,bw,bh);
+      x.strokeStyle='#222'; x.lineWidth=3; x.beginPath(); x.moveTo(cx,h-B-bh-eh); x.lineTo(cx,h-B-bh+eh); x.moveTo(cx-14,h-B-bh-eh); x.lineTo(cx+14,h-B-bh-eh); x.stroke();
+      x.fillStyle='#222'; x.textAlign='center'; x.font='28px sans-serif'; x.fillText(lb,cx,h-B+44); });
+    x.save(); x.translate(40,T+ph/2); x.rotate(-Math.PI/2); x.textAlign='center'; x.font='28px sans-serif'; x.fillText(ylab,0,0); x.restore();
+  });
+}
+function loadExample(){
+  const construct = cv(1500,380,x=>{
+    const parts=[['LB','#d9534f',90],['35S pro','#f0ad4e',220],['GFP','#f4e04d',260],['NOS ter','#5cb85c',200],['35S pro','#f0ad4e',220],['hptII','#5bc0de',220],['RB','#d9534f',90]];
+    let px=60; x.strokeStyle='#333'; x.lineWidth=5; x.beginPath(); x.moveTo(30,190); x.lineTo(1470,190); x.stroke();
+    parts.forEach(([n,c,w])=>{ x.fillStyle=c; x.strokeStyle='#333'; x.lineWidth=3;
+      if(n.includes('pro')){ x.beginPath(); x.moveTo(px,140); x.lineTo(px+w-40,140); x.lineTo(px+w,190); x.lineTo(px+w-40,240); x.lineTo(px,240); x.closePath(); x.fill(); x.stroke(); }
+      else { x.fillRect(px,140,w,100); x.strokeRect(px,140,w,100); }
+      x.fillStyle='#222'; x.font='bold 30px sans-serif'; x.textAlign='center'; x.fillText(n,px+w/2,200); px+=w+28; });
+    x.font='26px sans-serif'; x.fillStyle='#555'; x.fillText('pCAMBIA1302-based binary vector (T-DNA region)',750,320);
+  });
+  const grid = cv(900,1100,x=>{
+    const labs=['Day 0','Day 7','Day 14','Day 21','Day 28','Day 35'];
+    for(let i=0;i<6;i++){ const cx=(i%2)*450, cy=Math.floor(i/2)*366;
+      const g=x.createRadialGradient(cx+225,cy+180,20,cx+225,cy+180,220); g.addColorStop(0,['#d8e8b0','#b9d98a','#8cc263','#6aab48','#4f9a3a','#3f8a30'][i]); g.addColorStop(1,'#2d3a24');
+      x.fillStyle=g; x.fillRect(cx+8,cy+8,434,350);
+      x.fillStyle='#fff'; x.font='bold 32px sans-serif'; x.textAlign='left'; x.fillText(String.fromCharCode(65+i),cx+24,cy+52);
+      x.font='26px sans-serif'; x.textAlign='right'; x.fillText(labs[i],cx+426,cy+340); }
+  });
+  const b1 = barChart(['Control','Optimized'],[18,46],[3,5],'Transformation efficiency (%)', 900, 680);
+  const b2 = barChart(['10 min','20 min','30 min','40 min'],[22,35,48,30],[3,4,5,4],'GFP-positive explants (%)', 1100, 700);
+  const b3 = barChart(['OD 0.2','OD 0.5','OD 0.8'],[25,41,33],[4,4,5],'Regeneration rate (%)', 760, 760);
+  S = Object.assign(blank(), {
+    title:'Optimization of *Agrobacterium*-mediated Transformation and Tissue Culture Conditions in Chinese Cabbage (*Brassica rapa* L.)',
+    authors:'Hong Gildong^1, Kim Chulsoo^1, Lee Younghee^1,2*',
+    affil:'^1Department of Plant Science, Seoul National University, Seoul 08826, Korea\n^2Research Institute of Agriculture and Life Sciences, Seoul National University',
+    abstract:'Chinese cabbage (*Brassica rapa* L.) is one of the most important vegetable crops in East Asia, but its genetic transformation efficiency remains low and highly genotype-dependent. In this study, we systematically optimized the key parameters of *Agrobacterium*-mediated transformation, including bacterial density, infection time, and co-cultivation conditions.\n\nUsing a GFP reporter construct, we evaluated transient and stable expression in cotyledonary explants. The optimized protocol increased transformation efficiency approximately 2.5-fold compared to the conventional method, providing a practical platform for functional genomics and genome editing in Chinese cabbage.',
+    resultsIntro:'Explants were infected with *A. tumefaciens* strain GV3101 carrying the binary vector shown in Figure 1, and transformation efficiency was assessed by GFP fluorescence and hygromycin selection.',
+    conclusion:'1. Infection for 30 min at OD600 0.5 gave the highest proportion of GFP-positive explants.\n\n2. The optimized protocol improved stable transformation efficiency from 18% to 46%.\n\n3. This system can be applied to CRISPR/Cas9-mediated genome editing of agronomic traits in Chinese cabbage.',
+    figures:[
+      {...construct, legendTitle:'Schematic diagram of the T-DNA region.', legend:'GFP and the hygromycin resistance gene (*hptII*) are each driven by the CaMV 35S promoter. LB, left border; RB, right border; NOS ter, nopaline synthase terminator.', text:'', mode:'auto'},
+      {...grid, legendTitle:'Regeneration of transformed explants.', legend:'(A–F) Cotyledonary explants on selection medium from day 0 to day 35 after co-cultivation. Shoots began to emerge from day 21.', text:'Shoot regeneration was observed from day 21 on selection medium containing 10 mg/L hygromycin.', mode:'auto'},
+      {...b2, legendTitle:'Effect of infection time.', legend:'Percentage of GFP-positive explants at 7 days after co-cultivation. Error bars indicate SD (n = 3).', text:'', mode:'auto'},
+      {...b3, legendTitle:'Effect of bacterial density.', legend:'Regeneration rate of explants infected at different OD600 values. Error bars indicate SD (n = 3).', text:'', mode:'auto'},
+      {type:'table', legendTitle:'Summary of transformation results.', legend:'Values are mean ± SD of three independent experiments.', header:true, text:'',
+       data:'Condition\tExplants (n)\tGFP+ (%)\tHyg^{R} shoots (%)\nConventional\t150\t21.3 ± 3.2\t18.0 ± 3.1\nOptimized\t150\t48.7 ± 4.5\t46.2 ± 5.0'},
+      {...b1, legendTitle:'Comparison of transformation efficiency.', legend:'Stable transformation efficiency of the conventional and optimized protocols. Error bars indicate SD (n = 3).', text:'The optimized condition increased stable transformation efficiency about 2.5-fold.', mode:'auto'}
+    ]
+  });
+  syncFields(); update(true);
+}
+confirmClick($('#bExample'), '예시 불러오기', loadExample);
+
+/* ---------- views (landing / studio) ---------- */
+function route(){
+  const h = location.hash.replace('#',''), studio = h === 'studio';
+  $('#landing').classList.toggle('hidden', studio);
+  $('#studio').classList.toggle('hidden', !studio);
+  document.body.style.overflow = studio ? 'hidden' : '';
+  if (studio) { update(true); }
+  else if (h) { const t = document.getElementById(h); if (t) requestAnimationFrame(() => t.scrollIntoView({block:'start'})); }
+  else window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', route);
+window.addEventListener('scroll', () => $('#nav').classList.toggle('scrolled', window.scrollY > 8), {passive:true});
+route();
+
+/* ---------- init ---------- */
+syncFields();
+(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
+  if (!S.title && !S.figures.length && !S.abstract) loadExample(); else update(true);
+});
+setTimeout(() => update(true), 1200); // re-layout once web fonts settle
+</script>
+</body>
+</html>
